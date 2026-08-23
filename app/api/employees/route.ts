@@ -1,52 +1,62 @@
 import { NextResponse } from "next/server";
-import * as XLSX from "xlsx";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const shareUrl = process.env.EXCEL_SHARE_URL;
+    const csvUrl = process.env.EXCEL_SHARE_URL;
 
-    if (!shareUrl) {
+    if (!csvUrl) {
       throw new Error("EXCEL_SHARE_URL is not configured");
     }
 
-    const separator = shareUrl.includes("?") ? "&" : "?";
-    const downloadUrl = `${shareUrl}${separator}download=1`;
-
-    const response = await fetch(downloadUrl, {
+    const response = await fetch(csvUrl, {
       cache: "no-store",
     });
 
     if (!response.ok) {
       throw new Error(
-        `Unable to download Excel file. Status: ${response.status}`
+        `Unable to download spreadsheet. Status: ${response.status}`
       );
     }
 
-    const arrayBuffer = await response.arrayBuffer();
+    const csvText = await response.text();
 
-    const workbook = XLSX.read(arrayBuffer, {
-      type: "array",
-    });
+    const lines = csvText
+      .trim()
+      .split(/\r?\n/)
+      .map((line) => line.split(","));
 
-    const sheetName = workbook.SheetNames[0];
-
-    if (!sheetName) {
-      throw new Error("No worksheet found in Excel file");
+    if (lines.length < 2) {
+      return NextResponse.json([]);
     }
 
-    const worksheet = workbook.Sheets[sheetName];
+    const headers = lines[0].map((header) =>
+      header.trim().replace(/^"|"$/g, "")
+    );
 
-    const data = XLSX.utils.sheet_to_json(worksheet);
+    const data = lines.slice(1).map((row) => {
+      const employee: Record<string, string | number> = {};
+
+      headers.forEach((header, index) => {
+        const value = (row[index] || "")
+          .trim()
+          .replace(/^"|"$/g, "");
+
+        employee[header] =
+          header === "Age" ? Number(value) : value;
+      });
+
+      return employee;
+    });
 
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Excel error:", error);
+    console.error("Spreadsheet error:", error);
 
     return NextResponse.json(
       {
-        error: "Unable to read Excel file",
+        error: "Unable to load spreadsheet data",
         details: String(error),
       },
       { status: 500 }
