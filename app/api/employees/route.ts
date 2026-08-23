@@ -1,19 +1,33 @@
 import { NextResponse } from "next/server";
 import * as XLSX from "xlsx";
-import fs from "fs";
-import path from "path";
+
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const filePath = path.join(
-      process.cwd(),
-      "Internship_Dashboard.xlsx"
-    );
+    const shareUrl = process.env.EXCEL_SHARE_URL;
 
-    const fileBuffer = fs.readFileSync(filePath);
+    if (!shareUrl) {
+      throw new Error("EXCEL_SHARE_URL is not configured");
+    }
 
-    const workbook = XLSX.read(fileBuffer, {
-      type: "buffer",
+    const separator = shareUrl.includes("?") ? "&" : "?";
+    const downloadUrl = `${shareUrl}${separator}download=1`;
+
+    const response = await fetch(downloadUrl, {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `Unable to download Excel file. Status: ${response.status}`
+      );
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+
+    const workbook = XLSX.read(arrayBuffer, {
+      type: "array",
     });
 
     const sheetName = workbook.SheetNames[0];
