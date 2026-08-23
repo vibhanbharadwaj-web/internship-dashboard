@@ -10,7 +10,12 @@ export async function GET() {
       throw new Error("EXCEL_SHARE_URL is not configured");
     }
 
-    const response = await fetch(csvUrl, {
+    // Add a unique timestamp so we request a fresh copy
+    // instead of a previously cached CSV.
+    const separator = csvUrl.includes("?") ? "&" : "?";
+    const freshUrl = `${csvUrl}${separator}t=${Date.now()}`;
+
+    const response = await fetch(freshUrl, {
       cache: "no-store",
     });
 
