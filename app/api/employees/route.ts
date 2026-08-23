@@ -1,32 +1,87 @@
 import { NextResponse } from "next/server";
 import * as XLSX from "xlsx";
-import fs from "fs";
 
 export async function GET() {
   try {
-    const filePath =
-      "C:\\Users\\Dell\\Desktop\\Internship_Dashboard.xlsx";
+    const data = [
+      {
+        Name: "Ananya",
+        Address: "Bangalore",
+        Age: 20,
+        Gender: "Female",
+        Department: "IT",
+      },
+      {
+        Name: "Rahul",
+        Address: "Mysore",
+        Age: 22,
+        Gender: "Male",
+        Department: "HR",
+      },
+      {
+        Name: "Priya",
+        Address: "Chennai",
+        Age: 21,
+        Gender: "Female",
+        Department: "IT",
+      },
+      {
+        Name: "Arjun",
+        Address: "Hubli",
+        Age: 23,
+        Gender: "Male",
+        Department: "Finance",
+      },
+      {
+        Name: "Sneha",
+        Address: "Bangalore",
+        Age: 20,
+        Gender: "Female",
+        Department: "HR",
+      },
+      {
+        Name: "Kiran",
+        Address: "Mangalore",
+        Age: 24,
+        Gender: "Male",
+        Department: "IT",
+      },
+      {
+        Name: "Divya",
+        Address: "Mysore",
+        Age: 22,
+        Gender: "Female",
+        Department: "Finance",
+      },
+      {
+        Name: "Rohan",
+        Address: "Bangalore",
+        Age: 21,
+        Gender: "Male",
+        Department: "IT",
+      },
+      {
+        Name: "Kavya",
+        Address: "Chennai",
+        Age: 23,
+        Gender: "Female",
+        Department: "HR",
+      },
+      {
+        Name: "Aditya",
+        Address: "Hubli",
+        Age: 25,
+        Gender: "Male",
+        Department: "Finance",
+      },
+    ];
 
-    const fileBuffer = fs.readFileSync(filePath);
-
-    const workbook = XLSX.read(fileBuffer, {
-      type: "buffer",
-    });
-
-    const sheetName = workbook.SheetNames[0];
-    const worksheet = workbook.Sheets[sheetName];
-
-    const employees = XLSX.utils.sheet_to_json(worksheet);
-
-    return NextResponse.json(employees);
+    return NextResponse.json(data);
   } catch (error) {
-    console.error("Excel error:", error);
+    console.error("Error:", error);
 
     return NextResponse.json(
-      {
-        error: "Unable to read Excel file",
-        details: String(error),
-      },
+      { error: "Unable to load employee data" },
       { status: 500 }
     );
   }
